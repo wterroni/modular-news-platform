@@ -1,6 +1,6 @@
-package com.wterroni.news.core.network.api
+package com.wterroni.news.feature.stories.data.api
 
-import com.wterroni.news.core.network.model.dto.StoryDto
+import com.wterroni.news.feature.stories.data.model.StoryDto
 
 interface HackerNewsApi {
     suspend fun getTopStories(): List<Long>

@@ -1,7 +1,7 @@
-package com.wterroni.news.core.network.client
+package com.wterroni.news.feature.stories.data.api
 
-import com.wterroni.news.core.network.api.HackerNewsApi
-import com.wterroni.news.core.network.model.dto.StoryDto
+import com.wterroni.news.core.network.client.HttpClientProvider
+import com.wterroni.news.feature.stories.data.model.StoryDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get

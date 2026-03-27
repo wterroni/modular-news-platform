@@ -1,4 +1,4 @@
-package com.wterroni.news.core.network.model.dto
+package com.wterroni.news.feature.stories.data.model
 
 import kotlinx.serialization.Serializable
 
