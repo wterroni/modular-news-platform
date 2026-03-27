@@ -46,4 +46,6 @@ dependencies {
 
     implementation(project(":core-network"))
     implementation(project(":core-common"))
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.viewmodel)
 }
