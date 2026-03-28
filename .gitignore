@@ -1,15 +1,54 @@
+# -----------------------------
+# Gradle
+# -----------------------------
+.gradle/
+**/build/
+
+# -----------------------------
+# Android / IDE
+# -----------------------------
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+.idea/
 local.properties
+
+# Android Studio specific (opcional granular)
+# /.idea/caches
+# /.idea/libraries
+# /.idea/modules.xml
+# /.idea/workspace.xml
+# /.idea/navEditor.xml
+# /.idea/assetWizardSettings.xml
+
+# -----------------------------
+# OS
+# -----------------------------
+.DS_Store
+
+# -----------------------------
+# Native / NDK
+# -----------------------------
+.externalNativeBuild/
+.cxx/
+
+# -----------------------------
+# Captures
+# -----------------------------
+captures/
+
+# -----------------------------
+# Kotlin / Java compiled files
+# -----------------------------
+*.class
+*.dex
+
+# -----------------------------
+# Gradle intermediates / outputs
+# -----------------------------
+**/intermediates/
+**/generated/
+**/outputs/
+
+# -----------------------------
+# Logs
+# -----------------------------
+*.log
