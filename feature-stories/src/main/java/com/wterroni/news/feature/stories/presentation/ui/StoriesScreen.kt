@@ -13,9 +13,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.wterroni.news.feature.stories.domain.model.Story
-import com.wterroni.news.feature.stories.presentation.viewmodel.StoriesViewModel
 import org.koin.androidx.compose.koinViewModel
+import com.wterroni.news.feature.stories.presentation.viewmodel.StoriesViewModel
 
 @Composable
 fun StoriesScreen() {

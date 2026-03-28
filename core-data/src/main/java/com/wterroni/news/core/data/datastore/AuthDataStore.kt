@@ -14,19 +14,27 @@ class AuthDataStore(context: Context) {
     private val dataStore: DataStore<Preferences> = context.dataStore
     
     companion object {
+        private val NAME_KEY = stringPreferencesKey("user_name")
         private val EMAIL_KEY = stringPreferencesKey("user_email")
         private val PASSWORD_HASH_KEY = stringPreferencesKey("password_hash")
         private val SALT_KEY = stringPreferencesKey("salt")
     }
     
-    suspend fun saveUser(email: String, password: String) {
+    suspend fun saveUser(name: String, email: String, password: String) {
         val salt = HashUtils.generateSalt()
         val passwordHash = HashUtils.hashPassword(password, salt)
         
         dataStore.edit { preferences ->
+            preferences[NAME_KEY] = name
             preferences[EMAIL_KEY] = email
             preferences[PASSWORD_HASH_KEY] = passwordHash
             preferences[SALT_KEY] = salt
+        }
+    }
+    
+    suspend fun getUserName(): Flow<String?> {
+        return dataStore.data.map { preferences ->
+            preferences[NAME_KEY]
         }
     }
     

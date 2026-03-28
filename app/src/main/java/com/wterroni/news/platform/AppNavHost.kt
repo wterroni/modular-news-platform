@@ -5,6 +5,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.wterroni.news.feature.stories.presentation.ui.StoriesScreen
+import com.wterroni.news.feature.auth.presentation.ui.LoginScreen
+import com.wterroni.news.feature.auth.presentation.ui.SignUpScreen
 
 @Composable
 fun AppNavHost() {
@@ -12,8 +14,34 @@ fun AppNavHost() {
     
     NavHost(
         navController = navController,
-        startDestination = "stories"
+        startDestination = "login"
     ) {
+        composable("login") {
+            LoginScreen(
+                onNavigateToSignUp = { 
+                    navController.navigate("signup") 
+                },
+                onLoginSuccess = { 
+                    navController.navigate("stories") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
+            )
+        }
+        
+        composable("signup") {
+            SignUpScreen(
+                onNavigateBack = { 
+                    navController.popBackStack() 
+                },
+                onSignUpSuccess = { 
+                    navController.navigate("stories") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
+            )
+        }
+        
         composable("stories") {
             StoriesScreen()
         }
