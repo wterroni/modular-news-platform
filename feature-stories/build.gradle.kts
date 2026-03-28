@@ -36,6 +36,12 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
@@ -47,5 +53,6 @@ dependencies {
     implementation(project(":core-network"))
     implementation(project(":core-common"))
     implementation(libs.koin.android)
-    implementation(libs.koin.androidx.viewmodel)
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.androidx.navigation.compose)
 }

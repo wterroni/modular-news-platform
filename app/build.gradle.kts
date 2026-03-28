@@ -55,4 +55,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation(project(":core-common"))
+    implementation(libs.koin.android)
+    implementation(project(":feature-stories"))
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.koin.androidx.compose)
 }
