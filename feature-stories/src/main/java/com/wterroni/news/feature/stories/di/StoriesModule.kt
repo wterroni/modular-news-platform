@@ -7,12 +7,15 @@ import com.wterroni.news.feature.stories.data.repository.StoriesRepositoryImpl
 import com.wterroni.news.feature.stories.domain.repository.StoriesRepository as DomainStoriesRepository
 import com.wterroni.news.feature.stories.domain.usecase.GetTopStoriesUseCase
 import com.wterroni.news.feature.stories.presentation.viewmodel.StoriesViewModel
-import org.koin.androidx.viewmodel.dsl.viewModel
+import io.ktor.client.HttpClient
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val storiesModule = module {
     
-    single { HttpClientProvider() }
+    single<HttpClient> { 
+        HttpClientProvider().provideHttpClient() 
+    }
     
     single<HackerNewsApi> { HackerNewsApiImpl(get()) }
     

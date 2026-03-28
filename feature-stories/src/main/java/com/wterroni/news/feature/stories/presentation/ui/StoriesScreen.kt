@@ -2,9 +2,10 @@ package com.wterroni.news.feature.stories.presentation.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,9 +18,8 @@ import com.wterroni.news.feature.stories.presentation.viewmodel.StoriesViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun StoriesScreen(
-    viewModel: StoriesViewModel = koinViewModel()
-) {
+fun StoriesScreen() {
+    val viewModel: StoriesViewModel = koinViewModel()
     val uiState = viewModel.uiState.collectAsState().value
 
     LaunchedEffect(Unit) {
@@ -47,10 +47,7 @@ fun StoriesScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(
-                    items = uiState.stories,
-                    key = { story: Story -> story.id }
-                ) { story ->
+                items(uiState.stories) { story ->
                     StoryItem(
                         title = story.title ?: "No title",
                         author = story.author ?: "Unknown",
@@ -70,7 +67,7 @@ private fun StoryItem(
 ) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(16.dp)
     ) {
         Text(

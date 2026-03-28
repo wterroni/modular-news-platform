@@ -1,12 +1,17 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
     namespace = "com.wterroni.news.feature.stories"
     compileSdk {
         version = release(36)
+    }
+
+    buildFeatures {
+        compose = true
     }
 
     defaultConfig {
