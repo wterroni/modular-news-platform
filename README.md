@@ -192,6 +192,23 @@ Instead of using Paging 3, a custom pagination solution was implemented:
 
 ---
 
+# 📲 APK
+
+## Download Debug APK
+
+Download the latest debug APK:
+
+[**modular-news-app-debug.apk**](releases/modular-news-app-debug.apk) *(25.8 MB)*
+
+### Installation
+
+1. Download the APK file above
+2. Enable "Install from unknown sources" on your device
+3. Install the APK
+4. Launch the app and enjoy!
+
+---
+
 # 📦 Build & Run
 
 ## Requirements
@@ -205,6 +222,15 @@ Instead of using Paging 3, a custom pagination solution was implemented:
 2. Open in Android Studio
 3. Sync Gradle
 4. Run the app
+
+### Build APK
+
+```bash
+# Generate debug APK
+./gradlew assembleDebug
+
+# APK location: app/build/outputs/apk/debug/app-debug.apk
+```
 
 ---
 
