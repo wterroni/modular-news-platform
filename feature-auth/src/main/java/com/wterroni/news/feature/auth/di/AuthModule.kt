@@ -8,7 +8,9 @@ import com.wterroni.news.feature.auth.domain.repository.AuthRepository
 import com.wterroni.news.feature.auth.domain.usecase.CheckSessionUseCase
 import com.wterroni.news.feature.auth.domain.usecase.LoginUseCase
 import com.wterroni.news.feature.auth.domain.usecase.SignUpUseCase
+import com.wterroni.news.feature.auth.domain.usecase.LogoutUseCase
 import com.wterroni.news.feature.auth.presentation.viewmodel.AuthViewModel
+import com.wterroni.news.feature.auth.presentation.viewmodel.SplashViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -27,7 +29,9 @@ val authModule = module {
     single { LoginUseCase(get()) }
     single { SignUpUseCase(get()) }
     single { CheckSessionUseCase(get()) }
+    single { LogoutUseCase(get()) }
     
     // ViewModel
     viewModel { AuthViewModel(get(), get(), get()) }
+    viewModel { SplashViewModel(get()) }
 }

@@ -12,6 +12,7 @@ import com.wterroni.news.feature.stories.domain.usecase.GetStoriesUseCase
 import com.wterroni.news.feature.stories.domain.usecase.RefreshStoriesUseCase
 import com.wterroni.news.feature.stories.domain.usecase.IsFavoriteUseCase
 import com.wterroni.news.feature.stories.domain.usecase.ToggleFavoriteUseCase
+import com.wterroni.news.feature.auth.domain.usecase.LogoutUseCase
 import com.wterroni.news.feature.stories.presentation.viewmodel.StoriesViewModel
 import io.ktor.client.HttpClient
 import org.koin.core.module.dsl.viewModel
@@ -35,6 +36,7 @@ val storiesModule = module {
     single { ToggleFavoriteUseCase(get()) }
     single { GetFavoritesUseCase(get()) }
     single { IsFavoriteUseCase(get()) }
+    single { LogoutUseCase(get()) }
     
-    viewModel { StoriesViewModel(get(), get(), get(), get()) }
+    viewModel { StoriesViewModel(get(), get(), get(), get(), get()) }
 }

@@ -10,6 +10,7 @@ import com.wterroni.news.feature.stories.presentation.ui.StoriesScreen
 import com.wterroni.news.feature.stories.presentation.ui.StoryDetailScreen
 import com.wterroni.news.feature.auth.presentation.ui.LoginScreen
 import com.wterroni.news.feature.auth.presentation.ui.SignUpScreen
+import com.wterroni.news.feature.auth.presentation.ui.SplashScreen
 import java.net.URLEncoder
 import java.net.URLDecoder
 
@@ -19,8 +20,22 @@ fun AppNavHost() {
     
     NavHost(
         navController = navController,
-        startDestination = "login"
+        startDestination = "splash"
     ) {
+        composable("splash") {
+            SplashScreen(
+                onNavigateToStories = { 
+                    navController.navigate("stories") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = { 
+                    navController.navigate("login") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            )
+        }
         composable("login") {
             LoginScreen(
                 onNavigateToSignUp = { 
@@ -51,6 +66,11 @@ fun AppNavHost() {
             StoriesScreen(
                 onNavigateToStoryDetail = { url ->
                     navController.navigate("storyDetail/${URLEncoder.encode(url, "UTF-8")}")
+                },
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo("stories") { inclusive = true }
+                    }
                 }
             )
         }

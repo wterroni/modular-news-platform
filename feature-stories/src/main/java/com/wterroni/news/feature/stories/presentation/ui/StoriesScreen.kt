@@ -1,82 +1,217 @@
 package com.wterroni.news.feature.stories.presentation.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.koin.androidx.compose.koinViewModel
 import com.wterroni.news.feature.stories.presentation.viewmodel.StoriesViewModel
 import com.wterroni.news.feature.stories.domain.model.Story
 
-@Composable
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun StoriesScreen(
-    onNavigateToStoryDetail: (String) -> Unit = {}
+    onNavigateToStoryDetail: (String) -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     val viewModel: StoriesViewModel = koinViewModel()
     val uiState = viewModel.uiState.collectAsState().value
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
-    PullToRefreshBox(
-        isRefreshing = uiState.isLoading,
-        onRefresh = { viewModel.loadStories() },
-        modifier = Modifier.fillMaxSize()
-    ) {
-        when {
-            uiState.isLoading && uiState.stories.isEmpty() -> {
-                Text(
-                    text = "Loading...",
-                    modifier = Modifier.fillMaxSize(),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-
-            uiState.error != null -> {
-                Text(
-                    text = "Error: ${uiState.error}",
-                    modifier = Modifier.fillMaxSize(),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(uiState.stories) { story ->
-                        val isFavoriteState = viewModel.isFavorite(story.id).collectAsState(initial = false)
-                        StoryItem(
-                            story = story,
-                            onToggleFavorite = { viewModel.toggleFavorite(story) },
-                            isFavorite = isFavoriteState,
-                            onItemClick = { 
-                                story.url?.let { url ->
-                                    onNavigateToStoryDetail(url)
-                                }
-                            }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { 
+                    Text(
+                        text = "Top Stories",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+                actions = {
+                    IconButton(
+                        onClick = { showLogoutDialog = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Logout,
+                            contentDescription = "Logout"
                         )
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(innerPadding)
+        ) {
+            PullToRefreshBox(
+                isRefreshing = uiState.isLoading,
+                onRefresh = { viewModel.loadStories() },
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when {
+                    uiState.isLoading && uiState.stories.isEmpty() -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+
+                    uiState.error != null -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Error loading stories",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = uiState.error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+
+                    uiState.stories.isEmpty() -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No stories available",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(
+                                items = uiState.stories,
+                                key = { it.id }
+                            ) { story ->
+                                val isFavoriteState = viewModel.isFavorite(story.id).collectAsState(initial = false)
+                                StoryItem(
+                                    story = story,
+                                    onToggleFavorite = { viewModel.toggleFavorite(story) },
+                                    isFavorite = isFavoriteState,
+                                    onItemClick = { 
+                                        story.url?.let { url ->
+                                            onNavigateToStoryDetail(url)
+                                        }
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+    
+    // Dialog de confirmação de logout
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Warning",
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Logout")
+                }
+            },
+            text = {
+                Text("Do you really want to logout?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.logout()
+                        onLogout()
+                        showLogoutDialog = false
+                    }
+                ) {
+                    Text(
+                        "Logout",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showLogoutDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -89,38 +224,69 @@ private fun StoryItem(
 ) {
     val isFav by isFavorite
     
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .clickable { onItemClick() },
-        verticalAlignment = Alignment.CenterVertically
+    val favoriteColor by animateColorAsState(
+        targetValue = if (isFav) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(durationMillis = 300),
+        label = "favoriteColor"
+    )
+    
+    val favoriteScale by animateFloatAsState(
+        targetValue = if (isFav) 1.2f else 1f,
+        animationSpec = tween(durationMillis = 200),
+        label = "favoriteScale"
+    )
+    
+    ElevatedCard(
+        onClick = onItemClick,
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
-        Column(
-            modifier = Modifier.weight(1f)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = story.title ?: "No title",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = "By: ${story.author ?: "Unknown"}",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(
-                text = "Score: ${story.score ?: 0}",
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-        
-        IconButton(
-            onClick = onToggleFavorite
-        ) {
-            Icon(
-                imageVector = if (isFav) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                contentDescription = if (isFav) "Remove from favorites" else "Add to favorites",
-                tint = if (isFav) androidx.compose.ui.graphics.Color.Yellow else androidx.compose.ui.graphics.Color.Gray
-            )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = story.title ?: "No title",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "By: ${story.author ?: "Unknown"}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Score: ${story.score ?: 0}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            IconButton(
+                onClick = onToggleFavorite
+            ) {
+                Icon(
+                    imageVector = if (isFav) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                    contentDescription = if (isFav) "Remove from favorites" else "Add to favorites",
+                    tint = favoriteColor,
+                    modifier = Modifier.scale(favoriteScale)
+                )
+            }
         }
     }
 }
+

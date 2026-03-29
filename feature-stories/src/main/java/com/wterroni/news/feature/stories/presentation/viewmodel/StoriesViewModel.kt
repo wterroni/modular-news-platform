@@ -7,6 +7,7 @@ import com.wterroni.news.feature.stories.domain.usecase.GetStoriesUseCase
 import com.wterroni.news.feature.stories.domain.usecase.RefreshStoriesUseCase
 import com.wterroni.news.feature.stories.domain.usecase.ToggleFavoriteUseCase
 import com.wterroni.news.feature.stories.domain.usecase.IsFavoriteUseCase
+import com.wterroni.news.feature.auth.domain.usecase.LogoutUseCase
 import com.wterroni.news.feature.stories.presentation.state.StoriesUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +18,8 @@ class StoriesViewModel(
     private val getStoriesUseCase: GetStoriesUseCase,
     private val refreshStoriesUseCase: RefreshStoriesUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
-    private val isFavoriteUseCase: IsFavoriteUseCase
+    private val isFavoriteUseCase: IsFavoriteUseCase,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(StoriesUiState())
@@ -64,4 +66,10 @@ class StoriesViewModel(
     }
     
     fun isFavorite(id: Long) = isFavoriteUseCase(id)
+    
+    fun logout() {
+        viewModelScope.launch {
+            logoutUseCase()
+        }
+    }
 }
