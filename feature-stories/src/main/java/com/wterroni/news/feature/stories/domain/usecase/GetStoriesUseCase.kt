@@ -2,11 +2,12 @@ package com.wterroni.news.feature.stories.domain.usecase
 
 import com.wterroni.news.feature.stories.domain.model.Story
 import com.wterroni.news.feature.stories.domain.repository.StoriesRepository
+import kotlinx.coroutines.flow.Flow
 
-class GetTopStoriesUseCase(
+class GetStoriesUseCase(
     private val repository: StoriesRepository
 ) {
-    suspend operator fun invoke(limit: Int, offset: Int): List<Story> {
-        return repository.getTopStories(limit, offset)
+    operator fun invoke(): Flow<List<Story>> {
+        return repository.getStories()
     }
 }
