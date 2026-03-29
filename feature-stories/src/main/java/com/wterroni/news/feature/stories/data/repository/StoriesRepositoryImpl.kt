@@ -46,15 +46,12 @@ class StoriesRepositoryImpl(
                 
                 Log.d("NewsApp", "Primeiras stories: ${stories.size} de ${storyDeferreds.size} processadas")
 
-                // Limpar e salvar novas stories apenas se API funcionou
                 storyLocalDataSource.clearAll()
                 storyLocalDataSource.saveStories(stories)
                 Log.d("NewsApp", "Stories atualizadas com sucesso da API")
             }
         } catch (e: Exception) {
-            // Silenciosamente falhar - não limpar cache local
             Log.d("NewsApp", "Offline: usando cache local - ${e.message}")
-            // Não lançar exceção para não quebrar o fluxo
         }
     }
     
@@ -90,13 +87,11 @@ class StoriesRepositoryImpl(
                 
                 Log.d("NewsApp", "Carregadas mais ${stories.size} stories (offset=$offset, limit=$limit)")
 
-                // Inserir sem limpar - append
                 storyLocalDataSource.insertStories(stories)
                 Log.d("Pagination", "Stories inseridas com sucesso no banco local")
             }
         } catch (e: Exception) {
             Log.e("Pagination", "Erro ao carregar mais stories - ${e.message}", e)
-            // Não lançar exceção para não quebrar o fluxo
         }
     }
     

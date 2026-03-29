@@ -25,7 +25,6 @@ class SplashViewModel(
     fun checkSession() {
         viewModelScope.launch {
             try {
-                // Delay mínimo para UX suave (800ms - 1200ms)
                 delay(1000)
                 
                 val isLoggedIn = checkSessionUseCase().first()
@@ -35,7 +34,6 @@ class SplashViewModel(
                     destination = if (isLoggedIn) "stories" else "login"
                 )
             } catch (e: Exception) {
-                // Em caso de erro, direcionar para login
                 _uiState.value = SplashUiState(
                     isLoading = false,
                     destination = "login"

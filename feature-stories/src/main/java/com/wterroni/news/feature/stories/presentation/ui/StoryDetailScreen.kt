@@ -123,7 +123,6 @@ fun StoryDetailScreen(
                 }
             )
 
-            // Progress indicator
             androidx.compose.material3.LinearProgressIndicator(
                 progress = progress,
                 modifier = Modifier

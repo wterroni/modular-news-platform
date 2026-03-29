@@ -38,14 +38,12 @@ fun SplashScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
     
-    // Animação de entrada
     val alpha by animateFloatAsState(
         targetValue = 1f,
         animationSpec = tween(durationMillis = 800),
         label = "alpha"
     )
     
-    // Animação de escala
     val scale by animateFloatAsState(
         targetValue = 1f,
         animationSpec = tween(durationMillis = 600, delayMillis = 200),
@@ -59,7 +57,7 @@ fun SplashScreen(
     LaunchedEffect(uiState.destination) {
         uiState.destination?.let { destination ->
             scope.launch {
-                delay(200) // Pequeno delay para transição suave
+                delay(200)
                 when (destination) {
                     "stories" -> onNavigateToStories()
                     "login" -> onNavigateToLogin()

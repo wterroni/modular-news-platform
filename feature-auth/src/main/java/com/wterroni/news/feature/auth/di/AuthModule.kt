@@ -16,7 +16,6 @@ import org.koin.dsl.module
 
 val authModule = module {
     
-    // Repository
     single<AuthRepository> { 
         AuthRepositoryImpl(
             authDataStore = get(),
@@ -25,13 +24,11 @@ val authModule = module {
         )
     }
     
-    // Use Cases
     single { LoginUseCase(get()) }
     single { SignUpUseCase(get()) }
     single { CheckSessionUseCase(get()) }
     single { LogoutUseCase(get()) }
     
-    // ViewModel
     viewModel { AuthViewModel(get(), get(), get()) }
     viewModel { SplashViewModel(get()) }
 }

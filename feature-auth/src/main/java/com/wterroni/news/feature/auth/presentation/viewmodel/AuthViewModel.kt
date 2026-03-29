@@ -54,7 +54,6 @@ class AuthViewModel(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
             try {
-                // Validações simples
                 when {
                     name.isBlank() -> {
                         _uiState.value = _uiState.value.copy(

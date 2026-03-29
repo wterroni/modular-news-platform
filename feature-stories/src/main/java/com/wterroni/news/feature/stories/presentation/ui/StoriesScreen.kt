@@ -45,7 +45,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import android.util.Log
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -67,7 +66,6 @@ fun StoriesScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     
-    // Trigger robusto baseado em index para paginação infinita
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
             .collect { firstVisibleIndex ->
@@ -76,10 +74,7 @@ fun StoriesScreen(
                 
                 val shouldLoadMore = lastVisibleItem >= totalItems - 5
                 
-                Log.d("Pagination", "first=$firstVisibleIndex last=$lastVisibleItem total=$totalItems shouldLoadMore=$shouldLoadMore")
-                
                 if (shouldLoadMore) {
-                    Log.d("Pagination", "Disparando loadMore() via trigger robusto")
                     viewModel.loadMore()
                 }
             }
@@ -180,26 +175,20 @@ fun StoriesScreen(
                                 val isFavoriteFlow = viewModel.isFavorite(story.id)
                                 val isFav by remember {
                                     derivedStateOf {
-                                        // Usar cache primeiro, senão usar Flow
                                         favoriteStates.value[story.id] ?: false
                                     }
                                 }
                                 
-                                // Ouvir mudanças do Flow para atualizar cache
                                 LaunchedEffect(story.id) {
                                     isFavoriteFlow.collect { favState ->
                                         val currentStates = favoriteStates.value.toMutableMap()
                                         currentStates[story.id] = favState
-                                        // Não precisa emitir, só garante consistência
                                     }
                                 }
-                                
-                                Log.d("NewsApp", "Story ${story.id}: isFavorite=$isFav, title=${story.title?.take(30)}")
                                 
                                 StoryItem(
                                     story = story,
                                     onToggleFavorite = { 
-                                        Log.d("NewsApp", "Clique em toggle favorite para story ${story.id}")
                                         viewModel.toggleFavorite(story) 
                                     },
                                     isFavorite = remember { derivedStateOf { favoriteStates.value[story.id] ?: false } },
@@ -211,7 +200,6 @@ fun StoriesScreen(
                                 )
                             }
                             
-                            // Loading indicator no final da lista
                             if (uiState.isLoadingMore) {
                                 item {
                                     Box(
@@ -231,7 +219,6 @@ fun StoriesScreen(
         }
     }
     
-    // Dialog de confirmação de logout
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },

@@ -128,26 +128,20 @@ fun FavoritesScreen(
                             val isFavoriteFlow = viewModel.isFavorite(story.id)
                             val isFav by remember {
                                 derivedStateOf {
-                                    // Usar cache primeiro, senão usar Flow
-                                    favoriteStates.value[story.id] ?: true // Em favorites,默认 é true
+                                    favoriteStates.value[story.id] ?: true
                                 }
                             }
                             
-                            // Ouvir mudanças do Flow para atualizar cache
                             LaunchedEffect(story.id) {
                                 isFavoriteFlow.collect { favState ->
                                     val currentStates = favoriteStates.value.toMutableMap()
                                     currentStates[story.id] = favState
-                                    // Não precisa emitir, só garante consistência
                                 }
                             }
-                            
-                            Log.d("NewsApp", "Favorites: Story ${story.id}: isFavorite=$isFav, title=${story.title?.take(30)}")
                             
                             FavoriteStoryItem(
                                 story = story,
                                 onToggleFavorite = { 
-                                    Log.d("NewsApp", "Favorites: Clique em toggle favorite para story ${story.id}")
                                     viewModel.toggleFavorite(story) 
                                 },
                                 isFavorite = remember { derivedStateOf { favoriteStates.value[story.id] ?: true } },

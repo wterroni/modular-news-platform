@@ -29,7 +29,6 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     
-    // Animação de entrada
     var isVisible by remember { mutableStateOf(false) }
     val alpha by animateFloatAsState(
         targetValue = if (isVisible) 1f else 0f,
@@ -46,7 +45,6 @@ fun LoginScreen(
         isVisible = true
     }
 
-    // Observar sucesso do login para navegar
     LaunchedEffect(uiState.isLoggedIn) {
         if (uiState.isLoggedIn) {
             onLoginSuccess()
@@ -66,7 +64,6 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Header com ícone
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(bottom = 32.dp)
@@ -92,7 +89,6 @@ fun LoginScreen(
                 )
             }
 
-            // Container visual premium
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
