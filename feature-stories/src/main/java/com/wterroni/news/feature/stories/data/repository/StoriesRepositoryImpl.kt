@@ -11,9 +11,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import android.util.Log
-import kotlinx.coroutines.flow.Flow
 
 class StoriesRepositoryImpl(
     private val api: HackerNewsApi,
@@ -28,7 +25,6 @@ class StoriesRepositoryImpl(
         try {
             coroutineScope {
                 val storyIds = api.getTopStories()
-                Log.d("NewsApp", "API retornou ${storyIds.size} IDs totais")
 
                 val storyDeferreds = storyIds.take(20).map { id ->
                     async {
@@ -39,35 +35,25 @@ class StoriesRepositoryImpl(
                 val stories = storyDeferreds
                     .awaitAll()
                     .mapNotNull { dto ->
-                        val story = dto.toDomain()
-                        Log.d("NewsApp", "Story ${story.id}: title=${story.title}, url=${story.url}")
-                        story
+                        dto.toDomain()
                     }
-                
-                Log.d("NewsApp", "Primeiras stories: ${stories.size} de ${storyDeferreds.size} processadas")
 
                 storyLocalDataSource.clearAll()
                 storyLocalDataSource.saveStories(stories)
-                Log.d("NewsApp", "Stories atualizadas com sucesso da API")
             }
         } catch (e: Exception) {
-            Log.d("NewsApp", "Offline: usando cache local - ${e.message}")
+            // Offline: usando cache local
         }
     }
     
     override suspend fun loadMoreStories(offset: Int, limit: Int) {
         try {
-            Log.d("Pagination", "Iniciando loadMoreStories offset=$offset limit=$limit")
-            
             coroutineScope {
                 val storyIds = api.getTopStories()
-                Log.d("NewsApp", "API tem ${storyIds.size} IDs totais, carregando offset=$offset, limit=$limit")
                 
                 val nextIds = storyIds.drop(offset).take(limit)
-                Log.d("NewsApp", "IDs selecionados para esta página: ${nextIds.size}")
 
                 if (nextIds.isEmpty()) {
-                    Log.d("NewsApp", "Não há mais stories para carregar - chegamos ao fim da lista")
                     return@coroutineScope
                 }
 
@@ -80,18 +66,13 @@ class StoriesRepositoryImpl(
                 val stories = storyDeferreds
                     .awaitAll()
                     .mapNotNull { dto ->
-                        val story = dto.toDomain()
-                        Log.d("NewsApp", "Story ${story.id}: title=${story.title}, url=${story.url}")
-                        story
+                        dto.toDomain()
                     }
-                
-                Log.d("NewsApp", "Carregadas mais ${stories.size} stories (offset=$offset, limit=$limit)")
 
                 storyLocalDataSource.insertStories(stories)
-                Log.d("Pagination", "Stories inseridas com sucesso no banco local")
             }
         } catch (e: Exception) {
-            Log.e("Pagination", "Erro ao carregar mais stories - ${e.message}", e)
+            // Erro ao carregar mais stories
         }
     }
     
