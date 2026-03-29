@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Logout
@@ -36,11 +37,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import android.util.Log
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -60,6 +64,30 @@ fun StoriesScreen(
     val viewModel: StoriesViewModel = koinViewModel()
     val uiState = viewModel.uiState.collectAsState().value
     var showLogoutDialog by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    
+    // Detectar fim da lista para carregar mais
+    val shouldLoadMore = remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val total = listState.layoutInfo.totalItemsCount
+            val shouldLoad = lastVisible >= total - 5
+            if (shouldLoad) {
+                Log.d("NewsApp", "shouldLoadMore=true: lastVisible=$lastVisible, total=$total")
+            }
+            shouldLoad
+        }
+    }
+    
+    // LaunchedEffect para carregar mais quando chegar ao fim
+    LaunchedEffect(shouldLoadMore.value) {
+        if (shouldLoadMore.value && !uiState.isLoading && !uiState.isLoadingMore) {
+            Log.d("NewsApp", "LaunchedEffect acionado: shouldLoadMore=true, isLoading=${uiState.isLoading}, isLoadingMore=${uiState.isLoadingMore}")
+            viewModel.loadMore()
+        } else {
+            Log.d("NewsApp", "LaunchedEffect ignorado: shouldLoadMore=${shouldLoadMore.value}, isLoading=${uiState.isLoading}, isLoadingMore=${uiState.isLoadingMore}")
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -144,6 +172,7 @@ fun StoriesScreen(
                     else -> {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
+                            state = listState,
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
@@ -151,17 +180,53 @@ fun StoriesScreen(
                                 items = uiState.stories,
                                 key = { it.id }
                             ) { story ->
-                                val isFavoriteState = viewModel.isFavorite(story.id).collectAsState(initial = false)
+                                val favoriteStates = viewModel.favoriteStates.collectAsState()
+                                val isFavoriteFlow = viewModel.isFavorite(story.id)
+                                val isFav by remember {
+                                    derivedStateOf {
+                                        // Usar cache primeiro, senão usar Flow
+                                        favoriteStates.value[story.id] ?: false
+                                    }
+                                }
+                                
+                                // Ouvir mudanças do Flow para atualizar cache
+                                LaunchedEffect(story.id) {
+                                    isFavoriteFlow.collect { favState ->
+                                        val currentStates = favoriteStates.value.toMutableMap()
+                                        currentStates[story.id] = favState
+                                        // Não precisa emitir, só garante consistência
+                                    }
+                                }
+                                
+                                Log.d("NewsApp", "Story ${story.id}: isFavorite=$isFav, title=${story.title?.take(30)}")
+                                
                                 StoryItem(
                                     story = story,
-                                    onToggleFavorite = { viewModel.toggleFavorite(story) },
-                                    isFavorite = isFavoriteState,
+                                    onToggleFavorite = { 
+                                        Log.d("NewsApp", "Clique em toggle favorite para story ${story.id}")
+                                        viewModel.toggleFavorite(story) 
+                                    },
+                                    isFavorite = remember { derivedStateOf { favoriteStates.value[story.id] ?: false } },
                                     onItemClick = { 
                                         story.url?.let { url ->
                                             onNavigateToStoryDetail(url)
                                         }
                                     }
                                 )
+                            }
+                            
+                            // Loading indicator no final da lista
+                            if (uiState.isLoadingMore) {
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator()
+                                    }
+                                }
                             }
                         }
                     }

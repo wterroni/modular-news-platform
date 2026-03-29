@@ -25,38 +25,78 @@ class StoriesRepositoryImpl(
     override fun getStories() = storyLocalDataSource.getStories()
     
     override suspend fun refreshStories() {
-    try {
-        coroutineScope {
-            val storyIds = api.getTopStories()
-            val paginatedIds = storyIds.take(50)
+        try {
+            coroutineScope {
+                val storyIds = api.getTopStories()
+                Log.d("NewsApp", "API retornou ${storyIds.size} IDs totais")
 
-            val storyDeferreds = paginatedIds.map { id ->
-                async {
-                    api.getStory(id)
+                val storyDeferreds = storyIds.take(20).map { id ->
+                    async {
+                        api.getStory(id)
+                    }
                 }
+
+                val stories = storyDeferreds
+                    .awaitAll()
+                    .mapNotNull { dto ->
+                        val story = dto.toDomain()
+                        Log.d("NewsApp", "Story ${story.id}: title=${story.title}, url=${story.url}")
+                        story
+                    }
+                
+                Log.d("NewsApp", "Primeiras stories: ${stories.size} de ${storyDeferreds.size} processadas")
+
+                // Limpar e salvar novas stories apenas se API funcionou
+                storyLocalDataSource.clearAll()
+                storyLocalDataSource.saveStories(stories)
+                Log.d("NewsApp", "Stories atualizadas com sucesso da API")
             }
-
-            val stories = storyDeferreds
-                .awaitAll()
-                .mapNotNull { dto ->
-                    val story = dto.toDomain()
-                    Log.d("Stories", "Story ${story.id}: title=${story.title}, url=${story.url}")
-                    story.takeIf { !it.url.isNullOrBlank() }
-                }
-            
-            Log.d("Stories", "Stories com URL: ${stories.size} de ${storyDeferreds.size} processadas")
-
-            // Limpar e salvar novas stories apenas se API funcionou
-            storyLocalDataSource.clearAll()
-            storyLocalDataSource.saveStories(stories)
-            Log.d("Stories", "Stories atualizadas com sucesso da API")
+        } catch (e: Exception) {
+            // Silenciosamente falhar - não limpar cache local
+            Log.d("NewsApp", "Offline: usando cache local - ${e.message}")
+            // Não lançar exceção para não quebrar o fluxo
         }
-    } catch (e: Exception) {
-        // Silenciosamente falhar - não limpar cache local
-        Log.d("Stories", "Offline: usando cache local - ${e.message}")
-        // Não lançar exceção para não quebrar o fluxo
     }
-}
+    
+    override suspend fun loadMoreStories(offset: Int, limit: Int) {
+        try {
+            coroutineScope {
+                val storyIds = api.getTopStories()
+                Log.d("NewsApp", "API tem ${storyIds.size} IDs totais, carregando offset=$offset, limit=$limit")
+                
+                val nextIds = storyIds.drop(offset).take(limit)
+                Log.d("NewsApp", "IDs selecionados para esta página: ${nextIds.size}")
+
+                if (nextIds.isEmpty()) {
+                    Log.d("NewsApp", "Não há mais stories para carregar - chegamos ao fim da lista")
+                    return@coroutineScope
+                }
+
+                val storyDeferreds = nextIds.map { id ->
+                    async {
+                        api.getStory(id)
+                    }
+                }
+
+                val stories = storyDeferreds
+                    .awaitAll()
+                    .mapNotNull { dto ->
+                        val story = dto.toDomain()
+                        Log.d("NewsApp", "Story ${story.id}: title=${story.title}, url=${story.url}")
+                        story
+                    }
+                
+                Log.d("NewsApp", "Carregadas mais ${stories.size} stories (offset=$offset, limit=$limit)")
+
+                // Inserir sem limpar - append
+                storyLocalDataSource.insertStories(stories)
+                Log.d("NewsApp", "Stories inseridas com sucesso")
+            }
+        } catch (e: Exception) {
+            Log.d("NewsApp", "Erro ao carregar mais stories - ${e.message}")
+            // Não lançar exceção para não quebrar o fluxo
+        }
+    }
     
     override suspend fun toggleFavorite(story: Story) {
         val userEmail = authDataStore.getUserEmail().first() ?: return

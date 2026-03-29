@@ -31,8 +31,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -42,6 +45,7 @@ import org.koin.androidx.compose.koinViewModel
 import com.wterroni.news.feature.stories.presentation.viewmodel.FavoritesViewModel
 import com.wterroni.news.feature.stories.domain.model.Story
 import com.wterroni.news.core.common.utils.toRelativeTime
+import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,9 +124,33 @@ fun FavoritesScreen(
                             items = uiState.favorites,
                             key = { it.id }
                         ) { story ->
+                            val favoriteStates = viewModel.favoriteStates.collectAsState()
+                            val isFavoriteFlow = viewModel.isFavorite(story.id)
+                            val isFav by remember {
+                                derivedStateOf {
+                                    // Usar cache primeiro, senão usar Flow
+                                    favoriteStates.value[story.id] ?: true // Em favorites,默认 é true
+                                }
+                            }
+                            
+                            // Ouvir mudanças do Flow para atualizar cache
+                            LaunchedEffect(story.id) {
+                                isFavoriteFlow.collect { favState ->
+                                    val currentStates = favoriteStates.value.toMutableMap()
+                                    currentStates[story.id] = favState
+                                    // Não precisa emitir, só garante consistência
+                                }
+                            }
+                            
+                            Log.d("NewsApp", "Favorites: Story ${story.id}: isFavorite=$isFav, title=${story.title?.take(30)}")
+                            
                             FavoriteStoryItem(
                                 story = story,
-                                onToggleFavorite = { viewModel.toggleFavorite(story) },
+                                onToggleFavorite = { 
+                                    Log.d("NewsApp", "Favorites: Clique em toggle favorite para story ${story.id}")
+                                    viewModel.toggleFavorite(story) 
+                                },
+                                isFavorite = remember { derivedStateOf { favoriteStates.value[story.id] ?: true } },
                                 onItemClick = { 
                                     story.url?.let { url ->
                                         onNavigateToStoryDetail(url)
@@ -141,16 +169,19 @@ fun FavoritesScreen(
 private fun FavoriteStoryItem(
     story: Story,
     onToggleFavorite: () -> Unit,
+    isFavorite: androidx.compose.runtime.State<Boolean>,
     onItemClick: () -> Unit
 ) {
+    val isFav = isFavorite.value
+    
     val favoriteColor by animateColorAsState(
-        targetValue = MaterialTheme.colorScheme.primary,
+        targetValue = if (isFav) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         animationSpec = tween(durationMillis = 300),
         label = "favoriteColor"
     )
     
     val favoriteScale by animateFloatAsState(
-        targetValue = 1.2f,
+        targetValue = if (isFav) 1.2f else 1f,
         animationSpec = tween(durationMillis = 200),
         label = "favoriteScale"
     )
@@ -217,8 +248,8 @@ private fun FavoriteStoryItem(
                 onClick = onToggleFavorite
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Star,
-                    contentDescription = "Remove from favorites",
+                    imageVector = if (isFav) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                    contentDescription = if (isFav) "Remove from favorites" else "Add to favorites",
                     tint = favoriteColor,
                     modifier = Modifier.scale(favoriteScale)
                 )

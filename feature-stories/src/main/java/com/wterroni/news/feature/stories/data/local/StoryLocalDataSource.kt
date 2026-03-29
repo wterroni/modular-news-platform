@@ -23,6 +23,20 @@ class StoryLocalDataSource(
         storyDao.insertAll(entities)
     }
 
+    suspend fun insertStories(stories: List<Story>) {
+        val entities = stories.map { story ->
+            StoryEntity(
+                id = story.id,
+                title = story.title ?: "",
+                author = story.author ?: "",
+                score = story.score ?: 0,
+                time = story.time ?: 0L,
+                url = story.url
+            )
+        }
+        storyDao.insertAll(entities)
+    }
+
     fun getStories(): Flow<List<Story>> {
         return storyDao.getAllStories().map { entities ->
             entities.map { entity ->
