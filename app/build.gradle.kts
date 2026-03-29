@@ -56,6 +56,7 @@ dependencies {
 
     implementation(project(":core-common"))
     implementation(project(":core-data"))
+    implementation(project(":core-database"))
     implementation(libs.koin.android)
     implementation(project(":feature-stories"))
     implementation(project(":feature-auth"))

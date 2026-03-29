@@ -59,6 +59,7 @@ dependencies {
 
     implementation(project(":core-network"))
     implementation(project(":core-common"))
+    implementation(project(":core-database"))
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
     implementation(libs.androidx.navigation.compose)
