@@ -12,7 +12,7 @@ val databaseModule = module {
             AppDatabase::class.java,
             "news_database"
         )
-        .fallbackToDestructiveMigration()
+        .fallbackToDestructiveMigration(dropAllTables = true)
         .build()
     }
     
