@@ -9,30 +9,32 @@ import kotlinx.coroutines.flow.map
 class FavoriteStoriesLocalDataSource(
     private val favoriteStoryDao: FavoriteStoryDao
 ) {
-    suspend fun addFavorite(story: Story) {
+    suspend fun addFavorite(story: Story, userEmail: String) {
         val entity = FavoriteStoryEntity(
             id = story.id,
             title = story.title ?: "",
             author = story.author ?: "",
             score = story.score ?: 0,
-            time = story.time ?: 0L
+            time = story.time ?: 0L,
+            userEmail = userEmail
         )
         favoriteStoryDao.insert(entity)
     }
 
-    suspend fun removeFavorite(story: Story) {
+    suspend fun removeFavorite(story: Story, userEmail: String) {
         val entity = FavoriteStoryEntity(
             id = story.id,
             title = story.title ?: "",
             author = story.author ?: "",
             score = story.score ?: 0,
-            time = story.time ?: 0L
+            time = story.time ?: 0L,
+            userEmail = userEmail
         )
         favoriteStoryDao.delete(entity)
     }
 
-    fun getFavorites(): Flow<List<Story>> {
-        return favoriteStoryDao.getAllFavorites().map { entities ->
+    fun getFavorites(userEmail: String): Flow<List<Story>> {
+        return favoriteStoryDao.getFavoritesByUser(userEmail).map { entities ->
             entities.map { entity ->
                 Story(
                     id = entity.id,
@@ -45,6 +47,10 @@ class FavoriteStoriesLocalDataSource(
                 )
             }
         }
+    }
+
+    fun isFavorite(id: Long, userEmail: String): Flow<Boolean> {
+        return favoriteStoryDao.isFavoriteByUser(id, userEmail)
     }
 
     fun isFavorite(id: Long): Flow<Boolean> {

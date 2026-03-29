@@ -61,6 +61,7 @@ dependencies {
     implementation(project(":core-network"))
     implementation(project(":core-common"))
     implementation(project(":core-database"))
+    implementation(project(":core-data"))
     implementation(project(":feature-auth"))
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)

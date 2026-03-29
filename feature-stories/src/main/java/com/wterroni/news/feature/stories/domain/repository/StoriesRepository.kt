@@ -7,6 +7,6 @@ interface StoriesRepository {
     fun getStories(): Flow<List<Story>>
     suspend fun refreshStories()
     suspend fun toggleFavorite(story: Story)
-    fun isFavorite(id: Long): Flow<Boolean>
-    fun getFavorites(): Flow<List<Story>>
+    suspend fun isFavorite(id: Long): Boolean
+    suspend fun getFavorites(): List<Story>
 }

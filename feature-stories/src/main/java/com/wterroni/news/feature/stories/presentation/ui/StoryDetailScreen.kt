@@ -1,6 +1,7 @@
 package com.wterroni.news.feature.stories.presentation.ui
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.animation.core.animateFloatAsState
@@ -9,9 +10,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.viewinterop.AndroidView
 
@@ -36,12 +42,21 @@ fun StoryDetailScreen(
 ) {
     var isLoading by remember { mutableStateOf(true) }
     var progress by remember { mutableStateOf(0f) }
+    val context = LocalContext.current
     
     val progressAlpha by animateFloatAsState(
         targetValue = if (isLoading) 1f else 0f,
         animationSpec = tween(durationMillis = 300),
         label = "progressAlpha"
     )
+    
+    val shareStory = {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, url)
+        }
+        context.startActivity(Intent.createChooser(intent, "Share story"))
+    }
     
     Scaffold(
         topBar = {
@@ -54,12 +69,22 @@ fun StoryDetailScreen(
                     )
                 },
                 navigationIcon = {
-                    androidx.compose.material3.IconButton(
+                    IconButton(
                         onClick = onNavigateBack
                     ) {
-                        androidx.compose.material3.Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = shareStory
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Share"
                         )
                     }
                 }

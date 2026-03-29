@@ -15,8 +15,14 @@ interface FavoriteStoryDao {
     @Delete
     suspend fun delete(favorite: FavoriteStoryEntity)
 
+    @Query("SELECT * FROM favorite_stories WHERE userEmail = :userEmail")
+    fun getFavoritesByUser(userEmail: String): Flow<List<FavoriteStoryEntity>>
+
     @Query("SELECT * FROM favorite_stories")
     fun getAllFavorites(): Flow<List<FavoriteStoryEntity>>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM favorite_stories WHERE id = :id AND userEmail = :userEmail)")
+    fun isFavoriteByUser(id: Long, userEmail: String): Flow<Boolean>
 
     @Query("SELECT EXISTS(SELECT 1 FROM favorite_stories WHERE id = :id)")
     fun isFavorite(id: Long): Flow<Boolean>

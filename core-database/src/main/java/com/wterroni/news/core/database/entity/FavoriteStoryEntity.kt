@@ -10,5 +10,6 @@ data class FavoriteStoryEntity(
     val title: String,
     val author: String,
     val score: Int,
-    val time: Long
+    val time: Long,
+    val userEmail: String
 )

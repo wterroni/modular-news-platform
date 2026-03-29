@@ -6,7 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.wterroni.news.feature.stories.presentation.ui.StoriesScreen
+import com.wterroni.news.feature.stories.presentation.ui.MainScreen
 import com.wterroni.news.feature.stories.presentation.ui.StoryDetailScreen
 import com.wterroni.news.feature.auth.presentation.ui.LoginScreen
 import com.wterroni.news.feature.auth.presentation.ui.SignUpScreen
@@ -63,7 +63,7 @@ fun AppNavHost() {
         }
         
         composable("stories") {
-            StoriesScreen(
+            MainScreen(
                 onNavigateToStoryDetail = { url ->
                     navController.navigate("storyDetail/${URLEncoder.encode(url, "UTF-8")}")
                 },
