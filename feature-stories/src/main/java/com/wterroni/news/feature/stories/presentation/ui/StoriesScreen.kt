@@ -12,10 +12,11 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -26,42 +27,45 @@ import com.wterroni.news.feature.stories.presentation.viewmodel.StoriesViewModel
 import com.wterroni.news.feature.stories.domain.model.Story
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun StoriesScreen() {
     val viewModel: StoriesViewModel = koinViewModel()
     val uiState = viewModel.uiState.collectAsState().value
 
-    LaunchedEffect(Unit) {
-        viewModel.loadStories()
-    }
+    PullToRefreshBox(
+        isRefreshing = uiState.isLoading,
+        onRefresh = { viewModel.loadStories() },
+        modifier = Modifier.fillMaxSize()
+    ) {
+        when {
+            uiState.isLoading && uiState.stories.isEmpty() -> {
+                Text(
+                    text = "Loading...",
+                    modifier = Modifier.fillMaxSize(),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
 
-    when {
-        uiState.isLoading -> {
-            Text(
-                text = "Loading...",
-                modifier = Modifier.fillMaxSize(),
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
-        
-        uiState.error != null -> {
-            Text(
-                text = "Error: ${uiState.error}",
-                modifier = Modifier.fillMaxSize(),
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
-        
-        else -> {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(uiState.stories) { story ->
-                    val isFavoriteState = viewModel.isFavorite(story.id).collectAsState(initial = false)
-                    StoryItem(
-                        story = story,
-                        onToggleFavorite = { viewModel.toggleFavorite(story) },
-                        isFavorite = isFavoriteState
-                    )
+            uiState.error != null -> {
+                Text(
+                    text = "Error: ${uiState.error}",
+                    modifier = Modifier.fillMaxSize(),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(uiState.stories) { story ->
+                        val isFavoriteState = viewModel.isFavorite(story.id).collectAsState(initial = false)
+                        StoryItem(
+                            story = story,
+                            onToggleFavorite = { viewModel.toggleFavorite(story) },
+                            isFavorite = isFavoriteState
+                        )
+                    }
                 }
             }
         }

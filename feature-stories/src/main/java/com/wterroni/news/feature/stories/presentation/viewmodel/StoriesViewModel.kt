@@ -11,7 +11,6 @@ import com.wterroni.news.feature.stories.presentation.state.StoriesUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class StoriesViewModel(
@@ -25,8 +24,8 @@ class StoriesViewModel(
     val uiState: StateFlow<StoriesUiState> = _uiState.asStateFlow()
     
     init {
-        loadStories()
         observeStories()
+        loadStories()
     }
     
     private fun observeStories() {
@@ -58,6 +57,8 @@ class StoriesViewModel(
                     isLoading = false,
                     error = e.message
                 )
+            } finally {
+                _uiState.value = _uiState.value.copy(isLoading = false)
             }
         }
     }
