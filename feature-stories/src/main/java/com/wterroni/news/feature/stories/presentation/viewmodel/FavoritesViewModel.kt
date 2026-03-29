@@ -1,0 +1,74 @@
+package com.wterroni.news.feature.stories.presentation.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.wterroni.news.feature.stories.domain.model.Story
+import com.wterroni.news.feature.stories.domain.usecase.GetFavoritesUseCase
+import com.wterroni.news.feature.stories.domain.usecase.ToggleFavoriteUseCase
+import com.wterroni.news.feature.stories.domain.usecase.IsFavoriteUseCase
+import com.wterroni.news.feature.stories.presentation.state.FavoritesUiState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.firstOrNull
+
+class FavoritesViewModel(
+    private val getFavoritesUseCase: GetFavoritesUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val isFavoriteUseCase: IsFavoriteUseCase
+) : ViewModel() {
+    
+    private val _uiState = MutableStateFlow(FavoritesUiState())
+    val uiState: StateFlow<FavoritesUiState> = _uiState.asStateFlow()
+    
+    private val _favoriteStates = MutableStateFlow<Map<Long, Boolean>>(emptyMap())
+    val favoriteStates: StateFlow<Map<Long, Boolean>> = _favoriteStates.asStateFlow()
+    
+    init {
+        observeFavorites()
+    }
+    
+    private fun observeFavorites() {
+        viewModelScope.launch {
+            try {
+                getFavoritesUseCase().collect { favorites ->
+                    _uiState.value = _uiState.value.copy(
+                        favorites = favorites,
+                        error = null
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message
+                )
+            }
+        }
+    }
+    
+    fun toggleFavorite(story: Story) {
+        viewModelScope.launch {
+            try {
+                val isCurrentlyFavorite = isFavoriteUseCase(story.id).firstOrNull() ?: false
+
+                toggleFavoriteUseCase(story)
+
+                val newFavoriteState = isFavoriteUseCase(story.id).firstOrNull() ?: false
+                
+                if (!newFavoriteState) {
+                    val currentFavorites = _uiState.value.favorites.toMutableList()
+                    currentFavorites.removeAll { it.id == story.id }
+                    _uiState.value = _uiState.value.copy(favorites = currentFavorites)
+                }
+                
+                val currentStates = _favoriteStates.value.toMutableMap()
+                currentStates[story.id] = newFavoriteState
+                _favoriteStates.value = currentStates
+                
+            } catch (e: Exception) {
+            }
+        }
+    }
+    
+    fun isFavorite(id: Long) = isFavoriteUseCase(id)
+}
