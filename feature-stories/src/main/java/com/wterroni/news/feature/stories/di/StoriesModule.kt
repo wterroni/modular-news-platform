@@ -32,5 +32,5 @@ val storiesModule = module {
     single { GetFavoritesUseCase(get()) }
     single { IsFavoriteUseCase(get()) }
     
-    viewModel { StoriesViewModel(get()) }
+    viewModel { StoriesViewModel(get(), get(), get()) }
 }
