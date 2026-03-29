@@ -1,12 +1,17 @@
 package com.wterroni.news.platform
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.wterroni.news.feature.stories.presentation.ui.StoriesScreen
+import com.wterroni.news.feature.stories.presentation.ui.StoryDetailScreen
 import com.wterroni.news.feature.auth.presentation.ui.LoginScreen
 import com.wterroni.news.feature.auth.presentation.ui.SignUpScreen
+import java.net.URLEncoder
+import java.net.URLDecoder
 
 @Composable
 fun AppNavHost() {
@@ -43,7 +48,28 @@ fun AppNavHost() {
         }
         
         composable("stories") {
-            StoriesScreen()
+            StoriesScreen(
+                onNavigateToStoryDetail = { url ->
+                    navController.navigate("storyDetail/${URLEncoder.encode(url, "UTF-8")}")
+                }
+            )
+        }
+        
+        composable(
+            route = "storyDetail/{url}",
+            arguments = listOf(navArgument("url") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val url = backStackEntry.arguments?.getString("url")?.let { 
+                URLDecoder.decode(it, "UTF-8")
+            }
+            if (!url.isNullOrBlank()) {
+                StoryDetailScreen(
+                    url = url,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
     }
 }

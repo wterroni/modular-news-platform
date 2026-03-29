@@ -22,19 +22,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import org.koin.androidx.compose.koinViewModel
 import com.wterroni.news.feature.stories.presentation.viewmodel.StoriesViewModel
 import com.wterroni.news.feature.stories.domain.model.Story
-import com.wterroni.news.feature.stories.presentation.utils.openCustomTab
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun StoriesScreen() {
+fun StoriesScreen(
+    onNavigateToStoryDetail: (String) -> Unit = {}
+) {
     val viewModel: StoriesViewModel = koinViewModel()
     val uiState = viewModel.uiState.collectAsState().value
-    val context = LocalContext.current
 
     PullToRefreshBox(
         isRefreshing = uiState.isLoading,
@@ -70,7 +69,7 @@ fun StoriesScreen() {
                             isFavorite = isFavoriteState,
                             onItemClick = { 
                                 story.url?.let { url ->
-                                    openCustomTab(context, url)
+                                    onNavigateToStoryDetail(url)
                                 }
                             }
                         )
