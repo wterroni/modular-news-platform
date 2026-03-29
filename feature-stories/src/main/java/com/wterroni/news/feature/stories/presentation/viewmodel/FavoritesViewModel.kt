@@ -35,15 +35,18 @@ class FavoritesViewModel(
         viewModelScope.launch {
             try {
                 getFavoritesUseCase().collect { favorites ->
+                    Log.d("STATE", "collect favorites chamado, mantendo isLoading=${_uiState.value.isLoading}")
                     _uiState.value = _uiState.value.copy(
-                        isLoading = false,
+                        // NÃO mexer em isLoading aqui - apenas atualizar favorites
                         favorites = favorites,
                         error = null
                     )
+                    Log.d("STATE", "collect favorites concluído, isLoading=${_uiState.value.isLoading}")
                 }
             } catch (e: Exception) {
+                Log.d("STATE", "collect favorites erro, mantendo isLoading=${_uiState.value.isLoading}")
                 _uiState.value = _uiState.value.copy(
-                    isLoading = false,
+                    // NÃO mexer em isLoading aqui - apenas error
                     error = e.message
                 )
             }

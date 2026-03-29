@@ -34,7 +34,7 @@ class StoriesViewModel(
     private val _favoriteStates = MutableStateFlow<Map<Long, Boolean>>(emptyMap())
     val favoriteStates: StateFlow<Map<Long, Boolean>> = _favoriteStates.asStateFlow()
     
-    private var currentPage = 0
+    private var currentPage = 1  // Começar em 1 (já que a primeira página é carregada no refresh)
     private val pageSize = 20
     
     init {
@@ -46,15 +46,18 @@ class StoriesViewModel(
         viewModelScope.launch {
             try {
                 getStoriesUseCase().collect { stories ->
+                    Log.d("STATE", "collect chamado, mantendo isLoading=${_uiState.value.isLoading}")
                     _uiState.value = _uiState.value.copy(
-                        isLoading = false,
+                        // NÃO mexer em isLoading aqui - apenas atualizar stories
                         stories = stories,
                         error = null
                     )
+                    Log.d("STATE", "collect concluído, isLoading=${_uiState.value.isLoading}")
                 }
             } catch (e: Exception) {
+                Log.d("STATE", "collect erro, mantendo isLoading=${_uiState.value.isLoading}")
                 _uiState.value = _uiState.value.copy(
-                    isLoading = false,
+                    // NÃO mexer em isLoading aqui - apenas error
                     error = e.message
                 )
             }
@@ -63,33 +66,45 @@ class StoriesViewModel(
     
     fun loadStories() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            refreshStoriesUseCase()
-            currentPage = 1  // Já carregamos a primeira página
-            // Não tratamos erro aqui - refreshStories é best effort
-            // observeStories() vai atualizar a UI quando tiver dados
-            _uiState.value = _uiState.value.copy(isLoading = false)
+            try {
+                Log.d("STATE", "loadStories iniciado, setting isLoading=true")
+                _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+                refreshStoriesUseCase()
+                currentPage = 1
+                Log.d("Pagination", "loadStories() concluído - currentPage inicializado para $currentPage")
+            } catch (e: Exception) {
+                Log.e("Pagination", "Erro no refresh inicial", e)
+                _uiState.value = _uiState.value.copy(error = e.message)
+            } finally {
+                _uiState.value = _uiState.value.copy(isLoading = false)
+                Log.d("STATE", "🔥 ESSENCIAL: isLoading resetado para false no loadStories()")
+            }
         }
     }
     
     fun loadMore() {
         if (_uiState.value.isLoadingMore) {
-            Log.d("NewsApp", "loadMore() chamado mas já está carregando, ignorando...")
+            Log.d("Pagination", "loadMore() ignorado - já está carregando")
             return
         }
         
         viewModelScope.launch {
-            Log.d("NewsApp", "Iniciando loadMore() - currentPage=$currentPage, pageSize=$pageSize")
-            _uiState.value = _uiState.value.copy(isLoadingMore = true)
-            
-            val offset = currentPage * pageSize
-            Log.d("NewsApp", "Chamando loadMoreStoriesUseCase com offset=$offset, limit=$pageSize")
-            
-            loadMoreStoriesUseCase(offset, pageSize)
-            currentPage++
-            
-            Log.d("NewsApp", "loadMore() concluído - nova currentPage=$currentPage")
-            _uiState.value = _uiState.value.copy(isLoadingMore = false)
+            try {
+                _uiState.value = _uiState.value.copy(isLoadingMore = true)
+                
+                val offset = currentPage * pageSize
+                Log.d("Pagination", "LOAD MORE offset=$offset")
+                
+                loadMoreStoriesUseCase(offset, pageSize)
+                currentPage++
+                
+                Log.d("Pagination", "loadMore() concluído - nova currentPage=$currentPage")
+            } catch (e: Exception) {
+                Log.e("Pagination", "Erro no loadMore()", e)
+            } finally {
+                _uiState.value = _uiState.value.copy(isLoadingMore = false)
+                Log.d("Pagination", "isLoadingMore resetado para false")
+            }
         }
     }
     

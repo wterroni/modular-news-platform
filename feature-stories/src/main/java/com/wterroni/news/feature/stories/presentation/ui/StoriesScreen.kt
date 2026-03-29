@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import android.util.Log
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,27 +67,22 @@ fun StoriesScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     
-    // Detectar fim da lista para carregar mais
-    val shouldLoadMore = remember {
-        derivedStateOf {
-            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            val total = listState.layoutInfo.totalItemsCount
-            val shouldLoad = lastVisible >= total - 5
-            if (shouldLoad) {
-                Log.d("NewsApp", "shouldLoadMore=true: lastVisible=$lastVisible, total=$total")
+    // Trigger robusto baseado em index para paginação infinita
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect { firstVisibleIndex ->
+                val totalItems = listState.layoutInfo.totalItemsCount
+                val lastVisibleItem = firstVisibleIndex + listState.layoutInfo.visibleItemsInfo.size
+                
+                val shouldLoadMore = lastVisibleItem >= totalItems - 5
+                
+                Log.d("Pagination", "first=$firstVisibleIndex last=$lastVisibleItem total=$totalItems shouldLoadMore=$shouldLoadMore")
+                
+                if (shouldLoadMore) {
+                    Log.d("Pagination", "Disparando loadMore() via trigger robusto")
+                    viewModel.loadMore()
+                }
             }
-            shouldLoad
-        }
-    }
-    
-    // LaunchedEffect para carregar mais quando chegar ao fim
-    LaunchedEffect(shouldLoadMore.value) {
-        if (shouldLoadMore.value && !uiState.isLoading && !uiState.isLoadingMore) {
-            Log.d("NewsApp", "LaunchedEffect acionado: shouldLoadMore=true, isLoading=${uiState.isLoading}, isLoadingMore=${uiState.isLoadingMore}")
-            viewModel.loadMore()
-        } else {
-            Log.d("NewsApp", "LaunchedEffect ignorado: shouldLoadMore=${shouldLoadMore.value}, isLoading=${uiState.isLoading}, isLoadingMore=${uiState.isLoadingMore}")
-        }
     }
 
     Scaffold(

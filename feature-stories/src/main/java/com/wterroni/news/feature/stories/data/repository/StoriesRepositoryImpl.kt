@@ -60,6 +60,8 @@ class StoriesRepositoryImpl(
     
     override suspend fun loadMoreStories(offset: Int, limit: Int) {
         try {
+            Log.d("Pagination", "Iniciando loadMoreStories offset=$offset limit=$limit")
+            
             coroutineScope {
                 val storyIds = api.getTopStories()
                 Log.d("NewsApp", "API tem ${storyIds.size} IDs totais, carregando offset=$offset, limit=$limit")
@@ -90,10 +92,10 @@ class StoriesRepositoryImpl(
 
                 // Inserir sem limpar - append
                 storyLocalDataSource.insertStories(stories)
-                Log.d("NewsApp", "Stories inseridas com sucesso")
+                Log.d("Pagination", "Stories inseridas com sucesso no banco local")
             }
         } catch (e: Exception) {
-            Log.d("NewsApp", "Erro ao carregar mais stories - ${e.message}")
+            Log.e("Pagination", "Erro ao carregar mais stories - ${e.message}", e)
             // Não lançar exceção para não quebrar o fluxo
         }
     }
