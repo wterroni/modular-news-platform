@@ -49,17 +49,11 @@ class StoriesViewModel(
     
     fun loadStories() {
         viewModelScope.launch {
-            try {
-                _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-                refreshStoriesUseCase()
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = e.message
-                )
-            } finally {
-                _uiState.value = _uiState.value.copy(isLoading = false)
-            }
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            refreshStoriesUseCase()
+            // Não tratamos erro aqui - refreshStories é best effort
+            // observeStories() vai atualizar a UI quando tiver dados
+            _uiState.value = _uiState.value.copy(isLoading = false)
         }
     }
     

@@ -10,6 +10,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
+import android.util.Log
 
 class StoriesRepositoryImpl(
     private val api: HackerNewsApi,
@@ -20,6 +21,7 @@ class StoriesRepositoryImpl(
     override fun getStories() = storyLocalDataSource.getStories()
     
     override suspend fun refreshStories() {
+    try {
         coroutineScope {
             val storyIds = api.getTopStories()
             val paginatedIds = storyIds.take(20) // Pegar os primeiros 20
@@ -32,11 +34,17 @@ class StoriesRepositoryImpl(
             
             val stories = storyDeferreds.awaitAll().map { it.toDomain() }
             
-            // Limpar e salvar novas stories
+            // Limpar e salvar novas stories apenas se API funcionou
             storyLocalDataSource.clearAll()
             storyLocalDataSource.saveStories(stories)
+            Log.d("Stories", "Stories atualizadas com sucesso da API")
         }
+    } catch (e: Exception) {
+        // Silenciosamente falhar - não limpar cache local
+        Log.d("Stories", "Offline: usando cache local - ${e.message}")
+        // Não lançar exceção para não quebrar o fluxo
     }
+}
     
     override suspend fun toggleFavorite(story: Story) {
         val isCurrentlyFavorite = favoriteStoriesLocalDataSource.isFavorite(story.id).first()
