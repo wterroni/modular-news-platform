@@ -16,7 +16,8 @@ class StoryLocalDataSource(
                 title = story.title ?: "",
                 author = story.author ?: "",
                 score = story.score ?: 0,
-                time = story.time ?: 0L
+                time = story.time ?: 0L,
+                url = story.url
             )
         }
         storyDao.insertAll(entities)
@@ -32,7 +33,7 @@ class StoryLocalDataSource(
                     score = entity.score,
                     time = entity.time,
                     commentCount = null,
-                    url = null
+                    url = entity.url
                 )
             }
         }

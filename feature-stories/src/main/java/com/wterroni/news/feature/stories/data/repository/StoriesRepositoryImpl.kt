@@ -24,16 +24,24 @@ class StoriesRepositoryImpl(
     try {
         coroutineScope {
             val storyIds = api.getTopStories()
-            val paginatedIds = storyIds.take(20) // Pegar os primeiros 20
-            
+            val paginatedIds = storyIds.take(50)
+
             val storyDeferreds = paginatedIds.map { id ->
                 async {
                     api.getStory(id)
                 }
             }
+
+            val stories = storyDeferreds
+                .awaitAll()
+                .mapNotNull { dto ->
+                    val story = dto.toDomain()
+                    Log.d("Stories", "Story ${story.id}: title=${story.title}, url=${story.url}")
+                    story.takeIf { !it.url.isNullOrBlank() }
+                }
             
-            val stories = storyDeferreds.awaitAll().map { it.toDomain() }
-            
+            Log.d("Stories", "Stories com URL: ${stories.size} de ${storyDeferreds.size} processadas")
+
             // Limpar e salvar novas stories apenas se API funcionou
             storyLocalDataSource.clearAll()
             storyLocalDataSource.saveStories(stories)

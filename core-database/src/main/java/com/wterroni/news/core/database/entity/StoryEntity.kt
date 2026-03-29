@@ -10,5 +10,6 @@ data class StoryEntity(
     val title: String,
     val author: String,
     val score: Int,
-    val time: Long
+    val time: Long,
+    val url: String?
 )
