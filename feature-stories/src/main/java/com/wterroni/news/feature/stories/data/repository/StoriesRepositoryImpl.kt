@@ -24,9 +24,9 @@ class StoriesRepositoryImpl(
     override suspend fun refreshStories() {
         try {
             coroutineScope {
-                val storyIds = api.getTopStories()
+                val storyIds = api.getTopStoriesBatch()
 
-                val storyDeferreds = storyIds.take(20).map { id ->
+                val storyDeferreds = storyIds.map { id ->
                     async {
                         api.getStory(id)
                     }
@@ -34,7 +34,7 @@ class StoriesRepositoryImpl(
 
                 val stories = storyDeferreds
                     .awaitAll()
-                    .mapNotNull { dto ->
+                    .map { dto ->
                         dto.toDomain()
                     }
 
@@ -42,22 +42,19 @@ class StoriesRepositoryImpl(
                 storyLocalDataSource.saveStories(stories)
             }
         } catch (e: Exception) {
-            // Offline: usando cache local
         }
     }
     
     override suspend fun loadMoreStories(offset: Int, limit: Int) {
         try {
             coroutineScope {
-                val storyIds = api.getTopStories()
+                val storyIds = api.getStoriesBatch(offset)
                 
-                val nextIds = storyIds.drop(offset).take(limit)
-
-                if (nextIds.isEmpty()) {
+                if (storyIds.isEmpty()) {
                     return@coroutineScope
                 }
 
-                val storyDeferreds = nextIds.map { id ->
+                val storyDeferreds = storyIds.map { id ->
                     async {
                         api.getStory(id)
                     }
@@ -65,14 +62,14 @@ class StoriesRepositoryImpl(
 
                 val stories = storyDeferreds
                     .awaitAll()
-                    .mapNotNull { dto ->
+                    .map { dto ->
                         dto.toDomain()
                     }
 
                 storyLocalDataSource.insertStories(stories)
             }
         } catch (e: Exception) {
-            // Erro ao carregar mais stories
+
         }
     }
     

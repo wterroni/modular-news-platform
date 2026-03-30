@@ -3,6 +3,7 @@ package com.wterroni.news.feature.auth.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wterroni.news.feature.auth.domain.usecase.CheckSessionUseCase
+import com.wterroni.news.core.common.constants.AppConstants
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,18 +26,18 @@ class SplashViewModel(
     fun checkSession() {
         viewModelScope.launch {
             try {
-                delay(1000)
+                delay(AppConstants.SPLASH_DELAY_MS)
                 
                 val isLoggedIn = checkSessionUseCase().first()
                 
                 _uiState.value = SplashUiState(
                     isLoading = false,
-                    destination = if (isLoggedIn) "stories" else "login"
+                    destination = if (isLoggedIn) AppConstants.DESTINATION_STORIES else AppConstants.DESTINATION_LOGIN
                 )
             } catch (e: Exception) {
                 _uiState.value = SplashUiState(
                     isLoading = false,
-                    destination = "login"
+                    destination = AppConstants.DESTINATION_LOGIN
                 )
             }
         }

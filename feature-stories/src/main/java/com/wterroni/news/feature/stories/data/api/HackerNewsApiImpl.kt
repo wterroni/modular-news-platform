@@ -1,13 +1,13 @@
 package com.wterroni.news.feature.stories.data.api
 
-import com.wterroni.news.core.network.client.HttpClientProvider
+import com.wterroni.news.core.common.constants.AppConstants
 import com.wterroni.news.feature.stories.data.model.StoryDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 
 class HackerNewsApiImpl(
-    private val httpClient: HttpClient = HttpClientProvider().provideHttpClient()
+    private val httpClient: HttpClient
 ) : HackerNewsApi {
     
     companion object {
@@ -20,5 +20,13 @@ class HackerNewsApiImpl(
     
     override suspend fun getStory(id: Long): StoryDto {
         return httpClient.get("${BASE_URL}item/$id.json").body()
+    }
+    
+    override suspend fun getTopStoriesBatch(): List<Long> {
+        return getTopStories().take(AppConstants.STORIES_BATCH_SIZE)
+    }
+    
+    override suspend fun getStoriesBatch(offset: Int): List<Long> {
+        return getTopStories().drop(offset).take(AppConstants.STORIES_LOAD_MORE_LIMIT)
     }
 }
